@@ -1,12 +1,49 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const {CleanWebpackPlugin} = require('clean-webpack-plugin')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const OptimizeCssAssetWebpackPlugin = require('optimize-css-assets-webpack-plugin')
+const TerserWebpackPlugin = require('terser-webpack-plugin')
+const ImageminWebpackPlugin = require('imagemin-webpack-plugin').default
 const fs = require('fs');
+
+const isDev = process.env.NODE_ENV === 'development'
+const isProd = !isDev
+const filename = (folder, name, ext) => isDev ? `${folder}/${name}.${ext}` : `${folder}/${name}.[hash].${ext}`
+
+const optimization = () => {
+    const config = {
+        splitChunks: {
+            chunks: 'all'
+        }
+    }
+    if (isProd) {
+        config.minimizer = [
+            new OptimizeCssAssetWebpackPlugin(),
+            new TerserWebpackPlugin()
+        ]
+    }
+
+    return config
+}
 
 const plugins = () => {
     const allPlugins = [
         new MiniCssExtractPlugin({
-            filename: 'styles/style.css'
+            filename: filename('styles', 'style', 'css')
+        }),
+        new CleanWebpackPlugin(),
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: './src/favicon/favicon.ico', to: '' }
+            ],
+        }),
+        new ImageminWebpackPlugin({
+            disable: isDev,
+            optipng: {optimizationLevel: 5},
+            jpegtran: {progressive: true},
+            pngquant: 10
         })
     ]
     //Adding plugin for each html page
@@ -16,7 +53,10 @@ const plugins = () => {
         allPlugins.push(
             new HtmlWebpackPlugin({
                 template: `./src/pages/views/${pugFileName}.pug`,
-                filename: `${pugFileName}.html`
+                filename: `${pugFileName}.html`,
+                minify: {
+                    collapseWhitespace: isProd
+                }
             })
         )
     })
@@ -28,6 +68,11 @@ module.exports = {
     output: {
         filename: 'main.js',
         path: path.resolve(__dirname, 'dist')
+    },
+    optimization: optimization(),
+    devServer: {
+        port: 2200,
+        hot: isDev
     },
     module: {
         rules: [
@@ -43,8 +88,37 @@ module.exports = {
             {
                 test: /\.scss$/,
                 use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
+            },
+            {
+                test: /\.css$/,
+                use: [MiniCssExtractPlugin.loader, 'css-loader']
+            },
+            {
+                test: /\.(ttf|woff|woff2|eot)$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[ext]',
+                            outputPath: 'fonts/'
+                        }
+                    }
+                ]
+            },
+            {
+                test: /\.(jpg|jpeg|png|svg)$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[ext]',
+                            outputPath: 'img/'
+                        }
+                    }
+                ]
             }
         ]
     },
+    devtool: isDev ? 'source-map' : '',
     plugins: plugins()
 }
