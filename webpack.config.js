@@ -5,7 +5,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const OptimizeCssAssetWebpackPlugin = require('optimize-css-assets-webpack-plugin')
 const TerserWebpackPlugin = require('terser-webpack-plugin')
-const ImageminWebpackPlugin = require('imagemin-webpack-plugin').default
+const ImageMinPlugin = require('imagemin-webpack')
 const fs = require('fs');
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -39,11 +39,13 @@ const plugins = () => {
                 { from: './src/favicon/favicon.ico', to: '' }
             ],
         }),
-        new ImageminWebpackPlugin({
-            disable: isDev,
-            optipng: {optimizationLevel: 5},
-            jpegtran: {progressive: true},
-            pngquant: 10
+        new ImageMinPlugin({
+            imageminOptions: {
+                plugins: [
+                    ["jpegtran", { progressive: true }],
+                    ["optipng", { optimizationLevel: 5 }]
+                ]
+            }
         })
     ]
     //Adding plugin for each html page
@@ -77,13 +79,13 @@ module.exports = {
     module: {
         rules: [
             {
+                test: /\.pug$/,
+                use: ['pug-loader']
+            },
+            {
                 test: /\.js$/,
                 use: ['babel-loader'],
                 exclude: /node-modules/
-            },
-            {
-                test: /\.pug$/,
-                use: ['pug-loader']
             },
             {
                 test: /\.scss$/,

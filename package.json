@@ -20,7 +20,7 @@
     "css-loader": "^4.3.0",
     "file-loader": "^6.1.0",
     "html-webpack-plugin": "^4.5.0",
-    "imagemin-webpack-plugin": "^2.4.2",
+    "imagemin-webpack": "^5.1.1",
     "mini-css-extract-plugin": "^0.11.3",
     "node-sass": "^4.14.1",
     "optimize-css-assets-webpack-plugin": "^5.0.4",
@@ -31,5 +31,10 @@
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
+  },
+  "dependencies": {
+    "bootstrap": "^4.5.2",
+    "jquery": "^3.5.1",
+    "popper.js": "^1.16.1"
   }
 }
